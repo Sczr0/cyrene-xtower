@@ -7,10 +7,8 @@
 	// SEO 相关基础信息（站点标题、描述与结构化数据）
 	const siteUrl = 'https://cyrene.xtower.site';
 	const siteTitle = '米游抽卡期望与分布计算器';
-	const siteDescription =
-		'提供原神、崩坏：星穹铁道与绝区零的抽卡期望值与分布计算。';
-	const siteKeywords =
-		'抽卡,原神,星穹铁道,绝区零,抽卡模拟,保底,命定值,概率计算,期望,蒙特卡洛';
+	const siteDescription = '提供原神、崩坏：星穹铁道与绝区零的抽卡期望值与分布计算。';
+	const siteKeywords = '抽卡,原神,星穹铁道,绝区零,抽卡模拟,保底,命定值,概率计算,期望,蒙特卡洛';
 	const jsonLd = {
 		'@context': 'https://schema.org',
 		'@type': 'WebApplication',
@@ -39,7 +37,7 @@
 	<meta name="twitter:title" content={siteTitle} />
 	<meta name="twitter:description" content={siteDescription} />
 	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
+    {@html JSON.stringify(jsonLd)}
 	</script>
 </svelte:head>
 

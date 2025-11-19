@@ -386,37 +386,6 @@
 		};
 	}
 
-	// 优先调用服务端 API，失败时回退本地以避免完全不可用
-	async function callApi(args: GachaArgs): Promise<GachaResult> {
-		const res = await fetch('/api/gacha', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(args)
-		});
-
-		const data = await res.json();
-
-		if (!res.ok || !data.ok) {
-			throw new Error(data.error || '计算失败，请稍后重试');
-		}
-
-		const payload = data.data as {
-			mode: ModeKey;
-			pulls: PullStats;
-			returns?: PullStats;
-			success_rate?: number;
-		};
-
-		return {
-			mode: payload.mode,
-			pulls: payload.pulls,
-			returns: payload.returns,
-			success_rate: payload.success_rate
-		};
-	}
-
 	async function runLocally(args: GachaArgs): Promise<GachaResult> {
 		// 避免重复加载引擎，按需动态 import
 		const { runExpectation, runDistribution } = await loadEngine();
@@ -463,21 +432,12 @@
 
 		// 先刷新 UI，再等待计算，避免按钮无反馈
 		await tick();
+		// 让浏览器有机会绘制 loading 状态，再执行耗时计算
+		await new Promise((resolve) => setTimeout(resolve, 0));
 
 		try {
-			const payload = await callApi(args);
+			const payload = await runLocally(args);
 			applyResult(payload);
-		} catch (apiError) {
-			console.warn('[gacha] 服务端计算失败，回退到本地执行', apiError);
-			try {
-				const payload = await runLocally(args);
-				applyResult(payload);
-			} catch (localError) {
-				errorMessage =
-					localError instanceof Error
-						? localError.message
-						: '计算失败，请稍后重试';
-			}
 		} finally {
 			loading = false;
 			pendingMode = null;
