@@ -2,7 +2,7 @@ import https from 'https';
 import 'dotenv/config';
 
 const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
-const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const API_TOKEN = process.env.CACHE_PURGE_TOKEN;
 
 const data = JSON.stringify({ purge_everything: true });
 
