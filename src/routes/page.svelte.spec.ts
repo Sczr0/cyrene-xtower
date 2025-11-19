@@ -7,7 +7,7 @@ describe('/+page.svelte', () => {
 	it('should render main dashboard header', async () => {
 		render(Page);
 
-		const title = page.getByText('Gacha 期望查询');
+		const title = page.getByText(/抽卡期望.*概率计算器/);
 		await expect.element(title).toBeInTheDocument();
 	});
 });

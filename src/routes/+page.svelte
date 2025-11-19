@@ -1,4 +1,5 @@
 ﻿<script lang="ts">
+	import { tick } from 'svelte';
 	// 表单数据结构
 	import type {
 		GameKey,
@@ -76,8 +77,10 @@
 	};
 
 	let loading = false;
+	let pendingMode: ModeKey | null = null;
 	let errorMessage: string | null = null;
 	let result: GachaResult | null = null;
+	$: loadingMode = pendingMode ?? form.mode;
 
 	// 根据当前选择的游戏动态限制卡池选项
 	$: availablePools = poolOptions[form.game];
@@ -344,134 +347,140 @@
 			  })()
 			: null;
 
-	// 纯前端抽卡计算入口：直接调用 TS 抽卡引擎
+	function buildArgs(mode: ModeKey): GachaArgs {
+		const targetCount = Number(form.targetCount ?? 1);
+		if (!Number.isFinite(targetCount) || targetCount <= 0) {
+			throw new Error('目标数量必须为正整数');
+		}
+
+		const budgetRaw = form.budget;
+		const budget =
+			budgetRaw === null || budgetRaw === undefined
+				? null
+				: Number(budgetRaw);
+		if (budget !== null && (!Number.isFinite(budget) || budget <= 0)) {
+			throw new Error('预算必须为正整数或留空');
+		}
+
+		const pity = Number(form.initialState.pity ?? 0);
+		const mingguangCounter = Number(form.initialState.mingguangCounter ?? 0);
+		const fatePoint = Number(form.initialState.fatePoint ?? 0);
+
+		return {
+			game: form.game,
+			pool: form.pool,
+			mode,
+			targetCount,
+			up4C6: form.up4C6,
+			budget,
+			initialState: {
+				pity: Number.isFinite(pity) && pity >= 0 ? pity : 0,
+				isGuaranteed: form.initialState.isGuaranteed,
+				mingguangCounter:
+					Number.isFinite(mingguangCounter) && mingguangCounter >= 0
+						? mingguangCounter
+						: 0,
+				fatePoint:
+					Number.isFinite(fatePoint) && fatePoint >= 0 ? fatePoint : 0
+			}
+		};
+	}
+
+	// 优先调用服务端 API，失败时回退本地以避免完全不可用
+	async function callApi(args: GachaArgs): Promise<GachaResult> {
+		const res = await fetch('/api/gacha', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(args)
+		});
+
+		const data = await res.json();
+
+		if (!res.ok || !data.ok) {
+			throw new Error(data.error || '计算失败，请稍后重试');
+		}
+
+		const payload = data.data as {
+			mode: ModeKey;
+			pulls: PullStats;
+			returns?: PullStats;
+			success_rate?: number;
+		};
+
+		return {
+			mode: payload.mode,
+			pulls: payload.pulls,
+			returns: payload.returns,
+			success_rate: payload.success_rate
+		};
+	}
+
+	async function runLocally(args: GachaArgs): Promise<GachaResult> {
+		// 避免重复加载引擎，按需动态 import
+		const { runExpectation, runDistribution } = await loadEngine();
+
+		if (args.mode === 'expectation') {
+			const info = runExpectation(args);
+			return {
+				mode: args.mode,
+				pulls: { mean: info.mean }
+			};
+		}
+
+		const info = runDistribution(args);
+		return {
+			mode: args.mode,
+			pulls: info.pulls,
+			success_rate: info.successRate,
+			returns: info.returns
+		};
+	}
+
+	function applyResult(payload: GachaResult) {
+		form.mode = payload.mode;
+		result = payload;
+	}
+
+	// 提交计算：优先走服务端，保证 loading 提示先渲染，再执行重计算
 	async function submitClient(mode: ModeKey) {
+		pendingMode = mode;
 		loading = true;
 		errorMessage = null;
 		result = null;
 
+		let args: GachaArgs;
 		try {
-			const targetCount = Number(form.targetCount ?? 1);
-			if (!Number.isFinite(targetCount) || targetCount <= 0) {
-				throw new Error('目标数量必须为正整数');
-			}
-
-			const budgetRaw = form.budget;
-			const budget =
-				budgetRaw === null || budgetRaw === undefined
-					? null
-					: Number(budgetRaw);
-			if (budget !== null && (!Number.isFinite(budget) || budget <= 0)) {
-				throw new Error('预算必须为正整数或留空');
-			}
-
-			const pity = Number(form.initialState.pity ?? 0);
-			const mingguangCounter = Number(form.initialState.mingguangCounter ?? 0);
-			const fatePoint = Number(form.initialState.fatePoint ?? 0);
-
-			const args: GachaArgs = {
-				game: form.game,
-				pool: form.pool,
-				mode,
-				targetCount,
-				up4C6: form.up4C6,
-				budget,
-				initialState: {
-					pity: Number.isFinite(pity) && pity >= 0 ? pity : 0,
-					isGuaranteed: form.initialState.isGuaranteed,
-					mingguangCounter:
-						Number.isFinite(mingguangCounter) && mingguangCounter >= 0
-							? mingguangCounter
-							: 0,
-					fatePoint:
-						Number.isFinite(fatePoint) && fatePoint >= 0 ? fatePoint : 0
-				}
-			};
-
-			let pulls: PullStats;
-			let returns: PullStats | undefined;
-			let success_rate: number | undefined;
-
-			// 等待异步加载抽卡计算模块
-			const { runExpectation, runDistribution } = await loadEngine();
-
-			if (mode === 'expectation') {
-				const info = runExpectation(args);
-				pulls = { mean: info.mean };
-			} else {
-				const info = runDistribution(args);
-				pulls = info.pulls;
-				success_rate = info.successRate;
-				returns = info.returns;
-			}
-
-			form.mode = mode;
-			result = {
-				mode,
-				pulls,
-				returns,
-				success_rate
-			};
+			args = buildArgs(mode);
 		} catch (error) {
 			errorMessage =
 				error instanceof Error ? error.message : '未知错误，请稍后重试';
-		} finally {
+			pendingMode = null;
 			loading = false;
+			return;
 		}
-	}
 
-	async function submit(mode: ModeKey) {
-		loading = true;
-		errorMessage = null;
-		result = null;
+		// 先刷新 UI，再等待计算，避免按钮无反馈
+		await tick();
 
 		try {
-			const body = {
-				...form,
-				mode,
-				targetCount: Number(form.targetCount),
-				budget:
-					form.budget === null || form.budget === undefined ? null : Number(form.budget),
-				initialState: {
-					pity: Number(form.initialState.pity),
-					isGuaranteed: form.initialState.isGuaranteed,
-					mingguangCounter: Number(form.initialState.mingguangCounter),
-					fatePoint: Number(form.initialState.fatePoint)
-				}
-			};
-
-			const res = await fetch('/api/gacha', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(body)
-			});
-
-			const data = await res.json();
-
-			if (!data.ok) {
-				throw new Error(data.error || '计算失败，请稍后重试');
+			const payload = await callApi(args);
+			applyResult(payload);
+		} catch (apiError) {
+			console.warn('[gacha] 服务端计算失败，回退到本地执行', apiError);
+			try {
+				const payload = await runLocally(args);
+				applyResult(payload);
+			} catch (localError) {
+				errorMessage =
+					localError instanceof Error
+						? localError.message
+						: '计算失败，请稍后重试';
 			}
-
-			const payload = data.data as {
-				mode: ModeKey;
-				pulls: PullStats;
-				returns?: PullStats;
-				success_rate?: number;
-			};
-
-			form.mode = payload.mode;
-			result = {
-				mode: payload.mode,
-				pulls: payload.pulls,
-				returns: payload.returns,
-				success_rate: payload.success_rate
-			};
-		} catch (error) {
-			errorMessage = error instanceof Error ? error.message : '未知错误，请稍后重试';
 		} finally {
 			loading = false;
+			pendingMode = null;
 		}
 	}
 </script>
@@ -661,8 +670,8 @@
 									on:click={() => submitClient('expectation')}
 									disabled={loading}
 								>
-									{#if loading && form.mode === 'expectation'}
-										计算中…
+									{#if loading && loadingMode === 'expectation'}
+										计算中...
 									{:else}
 										计算期望抽数
 									{/if}
@@ -675,15 +684,15 @@
 									on:click={() => submitClient('distribution')}
 									disabled={loading}
 								>
-									{#if loading && form.mode === 'distribution'}
-										模拟中…
+									{#if loading && loadingMode === 'distribution'}
+										模拟运行中...
 									{:else}
 										模拟分布与概率
 									{/if}
 								</button>
 							</div>
 							<p class="text-[11px] text-slate-400">
-								期望模式计算更快，分布模式更适合评估预算与风险。
+							期望模式计算更快，分布模式更适合评估预算与风险敞口。
 							</p>
 						</div>
 
@@ -722,6 +731,24 @@
 							清空结果
 						</button>
 					</div>
+
+					{#if loading}
+						<div class="mb-4 flex items-start gap-3 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
+							<span class="mt-1 inline-flex h-3 w-3 items-center justify-center">
+								<span class="block h-3 w-3 animate-spin rounded-full border border-blue-200 border-t-blue-600"></span>
+							</span>
+							<div class="flex flex-col gap-0.5">
+								<p>
+									{loadingMode === 'distribution'
+										? '正在运行模拟，耗时取决于循环次数，请稍候。'
+										: '正在计算数学期望，请稍候。'}
+								</p>
+								<p class="text-[11px] text-blue-500">
+									大规模模拟会持续几秒，重算期间按钮已锁定，避免重复点击。
+								</p>
+							</div>
+						</div>
+					{/if}
 
 					{#if result}
 						<div class="grid gap-4 md:grid-cols-3">
@@ -1094,4 +1121,3 @@
 		</section>
 	</main>
 </div>
-
