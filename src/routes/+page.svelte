@@ -506,8 +506,8 @@
 						<p class="text-[11px] font-semibold text-slate-500">基础配置</p>
 						<div class="grid grid-cols-2 gap-3">
 							<div>
-								<label class="mb-1 block text-[11px] font-medium text-slate-500">游戏</label>
-								<select
+								<label for="field-game" class="mb-1 block text-[11px] font-medium text-slate-500">游戏</label>
+								<select id="field-game"
 									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none ring-0 focus:border-blue-500 focus:bg-white"
 									bind:value={form.game}
 									on:change={(e) =>
@@ -520,8 +520,8 @@
 							</div>
 
 							<div>
-								<label class="mb-1 block text-[11px] font-medium text-slate-500">卡池</label>
-								<select
+								<label for="field-pool" class="mb-1 block text-[11px] font-medium text-slate-500">卡池</label>
+								<select id="field-pool"
 									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none ring-0 focus:border-blue-500 focus:bg-white"
 									bind:value={form.pool}
 									on:change={(e) =>
@@ -536,8 +536,8 @@
 
 						<div class="grid grid-cols-2 gap-3">
 							<div>
-								<label class="mb-1 block text-[11px] font-medium text-slate-500">目标数量</label>
-								<input
+								<label for="field-target-count" class="mb-1 block text-[11px] font-medium text-slate-500">目标数量</label>
+								<input id="field-target-count"
 									type="number"
 									min="1"
 									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
@@ -545,10 +545,10 @@
 								/>
 							</div>
 							<div>
-								<label class="mb-1 block text-[11px] font-medium text-slate-500">
+								<label for="field-budget" class="mb-1 block text-[11px] font-medium text-slate-500">
 									预算抽数（可选）
 								</label>
-								<input
+								<input id="field-budget"
 									type="number"
 									min="1"
 									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
@@ -563,10 +563,10 @@
 						<p class="text-[11px] font-semibold text-slate-500">当前状态</p>
 						<div class="grid grid-cols-2 gap-3">
 							<div>
-								<label class="mb-1 block text-[11px] font-medium text-slate-500">
+								<label for="field-pity" class="mb-1 block text-[11px] font-medium text-slate-500">
 									当前垫抽
 								</label>
-								<input
+								<input id="field-pity"
 									type="number"
 									min="0"
 									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
@@ -575,10 +575,10 @@
 							</div>
 
 							<div>
-								<label class="mb-1 block text-[11px] font-medium text-slate-500">
+								<label for="field-guarantee" class="mb-1 block text-[11px] font-medium text-slate-500">
 									保底状态
 								</label>
-								<select
+								<select id="field-guarantee"
 									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
 									value={form.initialState.isGuaranteed ? 'true' : 'false'}
 									on:change={(e) =>
@@ -593,30 +593,30 @@
 						<div class="grid grid-cols-2 gap-3">
 							{#if showMingguang}
 								<div>
-									<label class="mb-1 block text-[11px] font-medium text-slate-500">
-										明光计数（连续吃大保底多少次）（原神角色池）
-									</label>
-									<input
-										type="number"
-										min="0"
-										class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
-										bind:value={form.initialState.mingguangCounter}
-									/>
-								</div>
+								<label for="field-mingguang" class="mb-1 block text-[11px] font-medium text-slate-500">
+									明光计数（连续吃大保底多少次）（原神角色池）
+								</label>
+								<input id="field-mingguang"
+									type="number"
+									min="0"
+									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
+									bind:value={form.initialState.mingguangCounter}
+								/>
+							</div>
 							{/if}
 
 							{#if showFatePoint}
 								<div>
-									<label class="mb-1 block text-[11px] font-medium text-slate-500">
-										命定值（原神武器池）
-									</label>
-									<input
-										type="number"
-										min="0"
-										class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
-										bind:value={form.initialState.fatePoint}
-									/>
-								</div>
+								<label for="field-fate-point" class="mb-1 block text-[11px] font-medium text-slate-500">
+									命定值（原神武器池）
+								</label>
+								<input id="field-fate-point"
+									type="number"
+									min="0"
+									class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white"
+									bind:value={form.initialState.fatePoint}
+								/>
+							</div>
 							{/if}
 						</div>
 					</div>
@@ -628,7 +628,7 @@
 						{#if showUp4C6}
 							<div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
 								<label class="flex items-center gap-2 text-[11px] text-slate-600">
-									<input
+									<input id="field-fate-point" id="field-mingguang" id="field-pity" id="field-budget" id="field-target-count"
 										type="checkbox"
 										class="h-3 w-3 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
 										bind:checked={form.up4C6}
@@ -1084,3 +1084,4 @@
 		</section>
 	</main>
 </div>
+
