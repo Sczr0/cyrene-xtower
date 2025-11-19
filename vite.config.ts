@@ -13,6 +13,11 @@ export default defineConfig({
 			outdir: './src/lib/paraglide'
 		})
 	],
+	build: {
+		rollupOptions: {
+			external: ['async_hooks', 'node:async_hooks']
+		}
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
