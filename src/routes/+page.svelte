@@ -1,6 +1,5 @@
 ﻿<script lang="ts">
 	// 表单数据结构，和 Python 抽卡核心参数一一对应
-	import { onMount } from 'svelte';
 	import type {
 		GameKey,
 		PoolKey,
@@ -41,9 +40,10 @@
 	}
 
 	// 页面挂载后在后台预加载计算脚本
-	onMount(() => {
+	function warmupEngine() {
+		if (enginePromise) return;
 		void loadEngine();
-	});
+	}
 
 	const poolOptions: Record<GameKey, { value: PoolKey; label: string }[]> = {
 		genshin: [
@@ -509,6 +509,7 @@
 			<!-- 左侧参数表单 -->
 			<div
 				class="w-full rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 lg:sticky lg:top-24 lg:max-w-md"
+				on:focusin={warmupEngine}
 			>
 				<div class="mb-4 flex items-center justify-between">
 					<div>
@@ -669,6 +670,7 @@
 								<button
 									type="button"
 									class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-300"
+									on:mouseenter={warmupEngine}
 									on:click={() => submitClient('expectation')}
 									disabled={loading}
 								>
@@ -681,6 +683,7 @@
 								<button
 									type="button"
 									class="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-500"
+									on:mouseenter={warmupEngine}
 									on:click={() => submitClient('distribution')}
 									disabled={loading}
 								>
@@ -1088,9 +1091,6 @@
 			>
 				<h3 class="mb-2 text-[13px] font-semibold text-slate-900">模型说明</h3>
 				<ul class="space-y-1 text-[11px] text-slate-500">
-					<li>
-						后端直接复用原有 Python 抽卡核心，覆盖原神、星穹铁道与绝区零的保底与返还逻辑。
-					</li>
 					<li>角色池下的蒙特卡洛模拟次数更高，因此计算时间略长。</li>
 				</ul>
 			</div>
@@ -1101,7 +1101,6 @@
 				<h3 class="mb-2 text-[13px] font-semibold text-slate-900">注意事项</h3>
 				<ul class="space-y-1 text-[11px] text-slate-500">
 					<li>所有结果仅供参考，不代表官方概率与实际抽卡结果。</li>
-					<li>请确保服务器环境安装 Python 3 和 numpy，以保证计算正常运行。</li>
 				</ul>
 			</div>
 		</section>
