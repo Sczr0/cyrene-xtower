@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
 	// 表单数据结构，和 Python 抽卡核心参数一一对应
-	import { runDistribution, runExpectation } from '$lib/gacha/engine';
+	import { onMount } from 'svelte';
 	import type {
 		GameKey,
 		PoolKey,
@@ -28,6 +28,22 @@
 		returns?: PullStats;
 		success_rate?: number;
 	};
+
+	// 异步加载抽卡计算代码
+	let enginePromise: Promise<typeof import('$lib/gacha/engine')> | null = null;
+
+	function loadEngine() {
+		if (!enginePromise) {
+			// 首次调用时才发起真正的网络请求
+			enginePromise = import('$lib/gacha/engine');
+		}
+		return enginePromise;
+	}
+
+	// 页面挂载后在后台预加载计算脚本
+	onMount(() => {
+		void loadEngine();
+	});
 
 	const poolOptions: Record<GameKey, { value: PoolKey; label: string }[]> = {
 		genshin: [
@@ -375,6 +391,9 @@
 			let pulls: PullStats;
 			let returns: PullStats | undefined;
 			let success_rate: number | undefined;
+
+			// 等待异步加载抽卡计算模块
+			const { runExpectation, runDistribution } = await loadEngine();
 
 			if (mode === 'expectation') {
 				const info = runExpectation(args);
