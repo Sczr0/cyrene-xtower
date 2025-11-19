@@ -477,20 +477,6 @@
 </script>
 
 <div class="min-h-screen bg-slate-50 text-slate-900">
-	<!-- 顶部导航 -->
-	<header class="border-b bg-white/80 backdrop-blur">
-		<div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 text-sm font-medium">
-			<div class="flex items-center gap-2">
-				<span class="text-base font-semibold text-slate-900">Gacha 期望查询</span>
-				<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Beta</span>
-			</div>
-			<nav class="flex items-center gap-6 text-xs text-slate-500">
-				<a href="#usage" class="hover:text-slate-900">使用说明</a>
-				<a href="#model" class="hover:text-slate-900">模型说明</a>
-				<a href="#notice" class="hover:text-slate-900">注意事项</a>
-			</nav>
-		</div>
-	</header>
 
 	<main class="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8">
 		<section class="flex flex-col gap-2">
