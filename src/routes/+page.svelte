@@ -1,24 +1,16 @@
 ﻿<script lang="ts">
 	// 表单数据结构，和 Python 抽卡核心参数一一对应
-	type GameKey = 'genshin' | 'hsr' | 'zzz';
-	type PoolKey = 'character' | 'weapon' | 'lightcone';
-	type ModeKey = 'expectation' | 'distribution';
+	import { runDistribution, runExpectation } from '$lib/gacha/engine';
+	import type {
+		GameKey,
+		PoolKey,
+		Mode,
+		InitialState,
+		GachaArgs,
+		PullStats
+	} from '$lib/gacha/core/types';
 
-	type PullStats = {
-		mean: number;
-		p25?: number;
-		p50?: number;
-		p75?: number;
-		p90?: number;
-		p95?: number;
-	};
-
-	type InitialState = {
-		pity: number;
-		isGuaranteed: boolean;
-		mingguangCounter: number;
-		fatePoint: number;
-	};
+	type ModeKey = Mode;
 
 	type FormState = {
 		game: GameKey;
@@ -336,6 +328,79 @@
 			  })()
 			: null;
 
+	// 纯前端抽卡计算入口：直接调用 TS 抽卡引擎
+	async function submitClient(mode: ModeKey) {
+		loading = true;
+		errorMessage = null;
+		result = null;
+
+		try {
+			const targetCount = Number(form.targetCount ?? 1);
+			if (!Number.isFinite(targetCount) || targetCount <= 0) {
+				throw new Error('目标数量必须为正整数');
+			}
+
+			const budgetRaw = form.budget;
+			const budget =
+				budgetRaw === null || budgetRaw === undefined || budgetRaw === ''
+					? null
+					: Number(budgetRaw);
+			if (budget !== null && (!Number.isFinite(budget) || budget <= 0)) {
+				throw new Error('预算必须为正整数或留空');
+			}
+
+			const pity = Number(form.initialState.pity ?? 0);
+			const mingguangCounter = Number(form.initialState.mingguangCounter ?? 0);
+			const fatePoint = Number(form.initialState.fatePoint ?? 0);
+
+			const args: GachaArgs = {
+				game: form.game,
+				pool: form.pool,
+				mode,
+				targetCount,
+				up4C6: form.up4C6,
+				budget,
+				initialState: {
+					pity: Number.isFinite(pity) && pity >= 0 ? pity : 0,
+					isGuaranteed: form.initialState.isGuaranteed,
+					mingguangCounter:
+						Number.isFinite(mingguangCounter) && mingguangCounter >= 0
+							? mingguangCounter
+							: 0,
+					fatePoint:
+						Number.isFinite(fatePoint) && fatePoint >= 0 ? fatePoint : 0
+				}
+			};
+
+			let pulls: PullStats;
+			let returns: PullStats | undefined;
+			let success_rate: number | undefined;
+
+			if (mode === 'expectation') {
+				const info = runExpectation(args);
+				pulls = { mean: info.mean };
+			} else {
+				const info = runDistribution(args);
+				pulls = info.pulls;
+				success_rate = info.successRate;
+				returns = info.returns;
+			}
+
+			form.mode = mode;
+			result = {
+				mode,
+				pulls,
+				returns,
+				success_rate
+			};
+		} catch (error) {
+			errorMessage =
+				error instanceof Error ? error.message : '未知错误，请稍后重试';
+		} finally {
+			loading = false;
+		}
+	}
+
 	async function submit(mode: ModeKey) {
 		loading = true;
 		errorMessage = null;
@@ -585,7 +650,7 @@
 								<button
 									type="button"
 									class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-300"
-									on:click={() => submit('expectation')}
+									on:click={() => submitClient('expectation')}
 									disabled={loading}
 								>
 									{#if loading && form.mode === 'expectation'}
@@ -597,7 +662,7 @@
 								<button
 									type="button"
 									class="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-500"
-									on:click={() => submit('distribution')}
+									on:click={() => submitClient('distribution')}
 									disabled={loading}
 								>
 									{#if loading && form.mode === 'distribution'}

@@ -24,3 +24,12 @@ vite.config.ts.timestamp-*
 
 # Paraglide
 src/lib/paraglide
+
+# 编辑器配置
+.codex
+.idea
+.vscode
+
+# 测试/草稿文件
+test.py
+test2.js
