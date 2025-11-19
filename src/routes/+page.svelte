@@ -671,6 +671,7 @@
 									type="button"
 									class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-300"
 									on:mouseenter={warmupEngine}
+									on:touchstart|passive={warmupEngine}
 									on:click={() => submitClient('expectation')}
 									disabled={loading}
 								>
@@ -684,6 +685,7 @@
 									type="button"
 									class="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-500"
 									on:mouseenter={warmupEngine}
+									on:touchstart|passive={warmupEngine}
 									on:click={() => submitClient('distribution')}
 									disabled={loading}
 								>
