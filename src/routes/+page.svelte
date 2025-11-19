@@ -584,8 +584,8 @@
 									on:change={(e) =>
 										(form.initialState.isGuaranteed = e.currentTarget.value === 'true')}
 								>
-									<option value="false">小保底（上次抽到常驻）</option>
-									<option value="true">大保底（上次抽到 UP）</option>
+									<option value="false">小保底（上次抽到 UP）</option>
+									<option value="true">大保底（上次抽到常驻）</option>
 								</select>
 							</div>
 						</div>
@@ -594,7 +594,7 @@
 							{#if showMingguang}
 								<div>
 									<label class="mb-1 block text-[11px] font-medium text-slate-500">
-										明光计数（原神角色池）
+										明光计数（连续吃大保底多少次）（原神角色池）
 									</label>
 									<input
 										type="number"
