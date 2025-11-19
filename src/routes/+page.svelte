@@ -342,7 +342,7 @@
 
 			const budgetRaw = form.budget;
 			const budget =
-				budgetRaw === null || budgetRaw === undefined || budgetRaw === ''
+				budgetRaw === null || budgetRaw === undefined
 					? null
 					: Number(budgetRaw);
 			if (budget !== null && (!Number.isFinite(budget) || budget <= 0)) {
@@ -628,7 +628,7 @@
 						{#if showUp4C6}
 							<div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
 								<label class="flex items-center gap-2 text-[11px] text-slate-600">
-									<input id="field-fate-point" id="field-mingguang" id="field-pity" id="field-budget" id="field-target-count"
+                                    <input
 										type="checkbox"
 										class="h-3 w-3 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
 										bind:checked={form.up4C6}
@@ -850,6 +850,7 @@
 							{/if}
 						{/if}
 
+						<!--
 						{#if false && result.mode === 'distribution'}
 							<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
 								<div class="flex items-center justify-between">
@@ -992,7 +993,9 @@
 								</div>
 							</div>
 						{/if}
+						-->
 
+						<!--
 						{#if false && result.mode === 'distribution'}
 							<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
 								<div class="flex items-center justify-between">
@@ -1032,6 +1035,7 @@
 								</div>
 							</div>
 						{/if}
+						-->
 
 					{:else}
 						<div
