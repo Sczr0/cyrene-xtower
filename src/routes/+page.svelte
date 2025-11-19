@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-	// 表单数据结构，和 Python 抽卡核心参数一一对应
+	// 表单数据结构
 	import type {
 		GameKey,
 		PoolKey,

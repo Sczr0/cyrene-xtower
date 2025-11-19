@@ -8,7 +8,7 @@
 	const siteUrl = 'https://cyrene.xtower.site';
 	const siteTitle = '米游抽卡期望与分布计算器';
 	const siteDescription =
-		'提供原神、崩坏：星穹铁道与绝区零的抽卡期望值与分布可视化计算。';
+		'提供原神、崩坏：星穹铁道与绝区零的抽卡期望值与分布计算。';
 	const siteKeywords =
 		'抽卡,原神,星穹铁道,绝区零,抽卡模拟,保底,命定值,概率计算,期望,蒙特卡洛';
 	const jsonLd = {

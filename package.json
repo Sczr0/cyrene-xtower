@@ -1,7 +1,7 @@
 {
 	"name": "cyrene-xtower",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -13,7 +13,8 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "pnpm run test:unit -- --run",
+    	"deploy": "pnpm build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name cyrene-xtower"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
@@ -44,6 +45,7 @@
 		"typescript-eslint": "^8.46.1",
 		"vite": "^7.1.10",
 		"vitest": "^4.0.5",
-		"vitest-browser-svelte": "^2.0.1"
+		"vitest-browser-svelte": "^2.0.1",
+		"wrangler": "^4.49.0"
 	}
 }
