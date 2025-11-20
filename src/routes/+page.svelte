@@ -349,9 +349,10 @@
 
 	// ����Ԥ������С��ʾ��ÿ����������С�ٷ�
 	function formatSuccessRate(value: number | undefined): string {
-		if (value === undefined || Number.isNaN(value)) return '-';
-		if (value > 0 && value < 0.01) return '< 0.01%';
-		return `${value.toFixed(2)}%`;
+		const rate = Number(value);
+		if (!Number.isFinite(rate) || rate < 0) return '-';
+		if (rate < 0.01) return '< 0.01%';
+		return `${rate.toFixed(2)}%`;
 	}
 
 	function buildArgs(mode: ModeKey): GachaArgs {
