@@ -347,6 +347,13 @@
 			  })()
 			: null;
 
+	// ����Ԥ������С��ʾ��ÿ����������С�ٷ�
+	function formatSuccessRate(value: number | undefined): string {
+		if (value === undefined || Number.isNaN(value)) return '-';
+		if (value > 0 && value < 0.01) return '< 0.01%';
+		return `${value.toFixed(2)}%`;
+	}
+
 	function buildArgs(mode: ModeKey): GachaArgs {
 		const targetCount = Number(form.targetCount ?? 1);
 		if (!Number.isFinite(targetCount) || targetCount <= 0) {
@@ -729,7 +736,7 @@
 								<p class="text-[11px] text-slate-500">预算达成概率</p>
 								{#if result.success_rate !== undefined}
 									<p class="mt-2 text-2xl font-semibold text-emerald-600">
-										{result.success_rate?.toFixed(2)}%
+										{formatSuccessRate(result.success_rate)}
 									</p>
 									<p class="mt-1 text-[11px] text-slate-400">
 										在预算抽数内完成目标的大致概率
