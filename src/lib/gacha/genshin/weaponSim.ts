@@ -16,7 +16,7 @@ interface SimState {
 
 type Collection = Record<string, number>;
 
-const NUM_CHARS_4_STAR = 39;
+const NUM_CHARS_4_STAR = 44;
 const NUM_WEAPONS_4_STAR = 18;
 const TOTAL_OFF_BANNER_4_STAR = NUM_CHARS_4_STAR + NUM_WEAPONS_4_STAR;
 
