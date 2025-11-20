@@ -1,5 +1,4 @@
-// 原神角色池蒙特卡洛模拟模型实现
-// 对应 Python 中的 GenshinCharacterLogic.get_one_target_pulls_sim
+// 原神角色池蒙特卡洛模拟模型 (适配 5.0+ 捕获明光 & 55% 概率)
 
 import type { DistributionResult, GachaArgs } from '../core/types';
 import type { RNG } from '../core/rng';
@@ -17,10 +16,15 @@ interface SimState {
 	mingguangCounter: number;
 }
 
+// 副产物计算相关常量
 const NUM_STANDARD_5_STARS = 7;
-const NUM_CHARS_4_STAR = 39;
+const NUM_CHARS_4_STAR = 44;
 const NUM_WEAPONS_4_STAR = 18;
 const TOTAL_OFF_BANNER_4_STAR = NUM_CHARS_4_STAR + NUM_WEAPONS_4_STAR;
+
+// 基础概率常量
+const PROB_BASE_WIN = 0.55; // 55% 综合胜率
+const PROB_GUARANTEED_WIN = 1.0; // 必中
 
 function getProb5Star(pityIndex: number): number {
 	const pull = pityIndex + 1;
@@ -29,16 +33,16 @@ function getProb5Star(pityIndex: number): number {
 	return 0.006 + (pull - 73) * 0.06;
 }
 
-function getWinLoseProb(isGuaranteed: boolean, mingguangCounter: number): { win: number; lose: number } {
-	if (isGuaranteed || mingguangCounter >= 3) {
-		return { win: 1, lose: 0 };
+// 获取本次出金是 UP 的概率
+function getWinRate(mingguangCounter: number): number {
+	// 连续歪 3 次，下次必定触发捕获明光
+	if (mingguangCounter >= 3) {
+		return PROB_GUARANTEED_WIN;
 	}
-	const pMg = 0.00018;
-	const win = pMg + (1 - pMg) * 0.5;
-	const lose = (1 - pMg) * 0.5;
-	return { win, lose };
+	return PROB_BASE_WIN;
 }
 
+// --- 副产物计算逻辑 (保持不变) ---
 function getFiveStarReturn(isUp: boolean, collection: Collection, rng: RNG): number {
 	if (isUp) {
 		const count = (collection.up_5_star ?? 0) + 1;
@@ -79,6 +83,7 @@ function handleFourStarPull(state: SimState, rng: RNG, collection: Collection, u
 	return 2;
 }
 
+// --- 核心模拟逻辑 (更新) ---
 function simulateOneTarget(state: SimState, rng: RNG, collection: Collection, up4C6: boolean): {
 	pulls: number;
 	returns: number;
@@ -94,31 +99,60 @@ function simulateOneTarget(state: SimState, rng: RNG, collection: Collection, up
 		const p5 = getProb5Star(state.pity - 1);
 
 		if (rng.next() < p5) {
+			// 出金了！
 			const wasGuaranteed = state.isGuaranteed;
-			const { win: pWin } = getWinLoseProb(wasGuaranteed, state.mingguangCounter);
-			const isTarget = rng.next() < pWin;
+			
+			// 计算本次是否为 UP
+			let isTarget = false;
 
+			if (wasGuaranteed) {
+				// 如果是大保底：必中
+				isTarget = true;
+				// 状态更新：
+				// 大保底是“歪了之后”的结果，所以属于非酋路径，计数器 +1
+				state.mingguangCounter += 1;
+				// 重置保底状态
+				state.isGuaranteed = false;
+			} else {
+				// 如果是小保底：判定胜率 (55% 或 100%)
+				const winRate = getWinRate(state.mingguangCounter);
+				isTarget = rng.next() < winRate;
+
+				if (isTarget) {
+					// 赢了 (小保底胜 或 明光捕获)
+					// 这是一次“胜利”，打断了“连续歪”的计数，计数器重置
+					state.mingguangCounter = 0;
+					state.isGuaranteed = false;
+				} else {
+					// 歪了
+					// 既然歪了，肯定没触发明光，计数器 +1
+					state.mingguangCounter += 1;
+					// 下次必中 (大保底)
+					state.isGuaranteed = true;
+				}
+			}
+
+			// 重置水位
 			state.pity = 0;
 			state.pity4 = 0;
 
+			// 计算副产物
 			if (isTarget) {
 				returnsThisRun += getFiveStarReturn(true, collection, rng);
-				state.isGuaranteed = false;
-				if (!wasGuaranteed) {
-					state.mingguangCounter = 0;
-				}
+				// 目标达成，退出循环
 				return { pulls, returns: returnsThisRun };
+			} else {
+				// 歪了，继续抽
+				returnsThisRun += getFiveStarReturn(false, collection, rng);
 			}
 
-			returnsThisRun += getFiveStarReturn(false, collection, rng);
-			state.pity = 0;
-			state.isGuaranteed = true;
-			if (!wasGuaranteed) {
-				state.mingguangCounter += 1;
-			}
 		} else {
-			const denom = p5 < 1 ? 1 - p5 : 0.99;
-			const triggerFourStar = state.pity4 >= 10 || rng.next() < 0.051 / denom;
+			// 没出金，判断四星
+			// 4星概率修正：当 5星概率极高时，4星概率会被挤占，需要做分母修正
+			const denom = p5 < 1 ? 1 - p5 : 0.01; // 防止除以0，给个极小值
+			// 官方公示：综合出率 13%，这里使用简化的判定逻辑
+			const triggerFourStar = state.pity4 >= 10 || rng.next() < (0.051 / denom);
+			
 			if (triggerFourStar) {
 				returnsThisRun += handleFourStarPull(state, rng, collection, up4C6);
 			}
@@ -155,6 +189,9 @@ export function runGenshinCharacterDistribution(
 	rng: RNG,
 	simulationCount?: number
 ): DistributionResult {
+	// 针对 Cloudflare Worker 的安全措施
+	// 建议在调用层（API）限制最大次数，这里做个兜底
+	// 如果是在前端 Worker 跑，可以跑多点；如果是后端，建议不超过 5000
 	const count = simulationCount ?? DEFAULT_SIMULATION_COUNT;
 
 	const pullsSamples: number[] = [];
