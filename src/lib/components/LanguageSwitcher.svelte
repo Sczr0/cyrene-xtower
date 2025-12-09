@@ -11,6 +11,8 @@
 	];
 
 	const currentLocale = getLocale() as LocaleKey;
+	let isOpen = false;
+	let timeoutId: ReturnType<typeof setTimeout>;
 
 	function switchLocale(newLocale: LocaleKey) {
 		if (newLocale === currentLocale) return;
@@ -29,9 +31,22 @@
 		// Navigate to the new URL
 		window.location.href = newUrl;
 	}
+
+	function handleMouseEnter() {
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+		}
+		isOpen = true;
+	}
+
+	function handleMouseLeave() {
+		timeoutId = setTimeout(() => {
+			isOpen = false;
+		}, 150); // 150ms 延迟，防止菜单快速消失
+	}
 </script>
 
-<div class="relative inline-block text-left group">
+<div class="relative inline-block text-left" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded={isOpen} on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
 	<button
 		type="button"
 		class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900"
@@ -53,7 +68,7 @@
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 20 20"
 			fill="currentColor"
-			class="h-4 w-4 text-slate-400"
+			class="h-4 w-4 text-slate-400 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}"
 		>
 			<path
 				fill-rule="evenodd"
@@ -63,20 +78,22 @@
 		</svg>
 	</button>
 
-	<div
-		class="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden group-hover:block"
-	>
-		{#each locales as locale}
-			<button
-				type="button"
-				class="block w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 {currentLocale ===
-				locale.key
-					? 'bg-slate-50 font-medium text-blue-600'
-					: ''}"
-				on:click={() => switchLocale(locale.key)}
-			>
-				{locale.label}
-			</button>
-		{/each}
-	</div>
+	{#if isOpen}
+		<div
+			class="absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+		>
+			{#each locales as locale}
+				<button
+					type="button"
+					class="block w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 {currentLocale ===
+					locale.key
+						? 'bg-slate-50 font-medium text-blue-600'
+						: ''}"
+					on:click={() => switchLocale(locale.key)}
+				>
+					{locale.label}
+				</button>
+			{/each}
+		</div>
+	{/if}
 </div>
