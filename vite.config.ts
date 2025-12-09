@@ -13,20 +13,6 @@ export default defineConfig({
 			outdir: './src/lib/paraglide'
 		})
 	],
-    resolve: {
-        alias: {
-            // 任何地方引用 "async_hooks"，都换成 "node:async_hooks"
-            'async_hooks': 'node:async_hooks'
-        }
-    },
-    // 👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆
-
-	build: {
-		rollupOptions: {
-            // 修改 external，排除带前缀的版本
-			external: ['node:async_hooks']
-		}
-	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

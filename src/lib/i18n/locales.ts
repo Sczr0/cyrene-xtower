@@ -260,11 +260,194 @@ const zhCN: LocaleText = {
 	}
 };
 
+const en: LocaleText = {
+	site: {
+		title: 'Gacha Expectation & Distribution Calculator',
+		description:
+			'Provides gacha expectation and distribution calculations for Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero. Supports custom pity, fate points, and Monte Carlo simulations.',
+		keywords:
+			'gacha,genshin,star rail,zzz,gacha simulation,pity,fate points,probability,expectation,monte carlo',
+		ogLocale: 'en_US',
+		currency: 'USD',
+		author: 'Cyrene'
+	},
+	hero: {
+		gameLine: 'Genshin Impact / Honkai: Star Rail / Zenless Zone Zero',
+		title: 'Multi-Game Gacha Expectation & Probability Calculator',
+		description:
+			'Enter your current pity, guarantee status, and target count to instantly get expected pulls, budget success rates, and luck distribution intervals.'
+	},
+	form: {
+		heading: 'Gacha Parameters',
+		subheading: 'Select game and pool, then fill in target and current state',
+		basicsTitle: 'Basic Configuration',
+		gameLabel: 'Game',
+		gameOptions: {
+			genshin: 'Genshin Impact',
+			hsr: 'Honkai: Star Rail',
+			zzz: 'Zenless Zone Zero'
+		},
+		poolLabel: 'Pool',
+		poolOptions: {
+			genshin: [
+				{ value: 'character', label: 'Character Event' },
+				{ value: 'weapon', label: 'Weapon Event' }
+			],
+			hsr: [
+				{ value: 'character', label: 'Character Event' },
+				{ value: 'lightcone', label: 'Light Cone Event' }
+			],
+			zzz: [
+				{ value: 'character', label: 'Agent Search' },
+				{ value: 'weapon', label: 'W-Engine Search' }
+			]
+		},
+		targetLabel: 'Target Count',
+		budgetLabel: 'Budget Pulls (Optional)',
+		stateTitle: 'Current State',
+		pityLabel: 'Current Pity',
+		guaranteeLabel: 'Guarantee Status',
+		guaranteeOptions: [
+			{ value: false, label: '50/50 (Last pull was UP)' },
+			{ value: true, label: 'Guaranteed (Last pull was Standard)' }
+		],
+		mingguangLabel: 'Capturing Radiance Counter (Genshin Character)',
+		fateLabel: 'Fate Points (Genshin Weapon)',
+		advancedTitle: 'Advanced Options',
+		up4c6Label: 'UP 4-Star C6 (Character Pool Only)',
+		up4c6Unavailable: 'Current pool does not support UP 4-Star C6 config, option ignored.',
+		actions: {
+			expectationLabel: 'Calculate Expectation',
+			expectationLoading: 'Calculating...',
+			distributionLabel: 'Simulate Distribution',
+			distributionLoading: 'Simulating...',
+			helper: 'Expectation mode is faster; Distribution mode is better for assessing budget and risk.'
+		},
+		errors: {
+			invalidTarget: 'Target count must be a positive integer',
+			invalidBudget: 'Budget must be a positive integer or empty',
+			unknown: 'Unknown error, please try again later'
+		}
+	},
+	buckets: {
+		pullLabels: {
+			p25: 'Lucky',
+			p50: 'Average',
+			p75: 'Unlucky',
+			p95: 'Very Unlucky'
+		},
+		zoneLabels: {
+			p25: 'Lucky Zone',
+			p50: 'Average Zone',
+			p75: 'Unlucky Zone',
+			p95: 'Very Unlucky Zone'
+		}
+	},
+	results: {
+		heading: 'Results Overview',
+		summary: 'Gacha expectation and distribution statistics based on current configuration',
+		modeLabel: 'Current Mode: ',
+		modeExpectation: 'Mathematical Expectation',
+		modeDistribution: 'Simulation Distribution',
+		reset: 'Reset Results',
+		loadingDistribution: 'Running simulation, duration depends on iteration count, please wait.',
+		loadingExpectation: 'Calculating mathematical expectation, please wait.',
+		loadingNote:
+			'Large-scale simulations may take a few seconds. Buttons are locked during calculation to prevent duplicate clicks.',
+		returnsDistributionTitle: 'Return Distribution (Starglitter / Starlight / Residual Signal)',
+		meanCard: {
+			title: 'Expected Pulls (Average)',
+			subtitle: 'Approx. Primogems / Stellar Jades / Polychromes: '
+		},
+		successCard: {
+			title: 'Budget Success Rate',
+			description: 'Approximate probability of achieving the target within the budget',
+			placeholder: 'Displayed only in simulation mode with budget filled'
+		},
+		returnsCard: {
+			title: 'Returns (Average)',
+			description: 'Includes Starglitter / Starlight / Residual Signal returns',
+			placeholder: 'Returns statistics not available in some pools or math mode'
+		},
+		pullDistribution: {
+			p25: {
+				title: '25% Lucky Line (Pulls)',
+				description: 'Approx. 25% chance to complete within this many pulls'
+			},
+			p50: {
+				title: '50% Median Line (Pulls)',
+				description: 'Half of players complete before this many pulls'
+			},
+			p75: {
+				title: '75% Unlucky Line (Pulls)',
+				description: 'Exceeding this many pulls is considered unlucky'
+			},
+			p95: {
+				title: '95% Very Unlucky Line (Pulls)',
+				description: 'Upper bound of pulls in extreme cases'
+			}
+		},
+		returnDistribution: {
+			p25: {
+				title: '25% Lucky Line (Returns)',
+				description: 'Approx. 25% chance returns are not lower than this value'
+			},
+			p50: {
+				title: '50% Median Line (Returns)',
+				description: 'Half of simulations return no less than this value'
+			},
+			p75: {
+				title: '75% Unlucky Line (Returns)',
+				description: 'Returns lower than this are considered unlucky'
+			},
+			p95: {
+				title: '95% Extreme Line (Returns)',
+				description: 'Upper bound of returns in extreme lucky cases'
+			}
+		},
+		empty: {
+			title: 'No Results Yet',
+			description:
+				'Configure parameters on the left, then click "Calculate Expectation" or "Simulate Distribution" to start.'
+		}
+	},
+	docs: {
+		usageTitle: 'Usage Instructions',
+		usage: [
+			'Select game and pool, and fill in current pity and guarantee status.',
+			'"Expected Pulls" uses a mathematical model for quick estimation.',
+			'"Simulate Distribution" uses Monte Carlo simulation to provide probability intervals and budget success rates.'
+		],
+		modelTitle: 'Model Explanation',
+		model: [
+			'Monte Carlo simulations for character pools have higher iteration counts, so calculation time is slightly longer.'
+		],
+		noticeTitle: 'Notices',
+		notice: [
+			'All results are for reference only and do not represent official probabilities or actual gacha results.'
+		]
+	},
+	apiErrors: {
+		emptyBody: 'Request body is empty or malformed',
+		invalidGame: 'Invalid game type',
+		invalidPool: 'Invalid pool type or mismatch with game',
+		invalidTarget: 'Target count must be a positive integer',
+		invalidBudget: 'Budget must be a positive integer or empty',
+		unknown: 'Unknown error, please try again later'
+	},
+	engineErrors: {
+		unsupportedCombination: (key: string) => `Unsupported game and pool combination: ${key}`,
+		matrixNotSquare: 'solveLinearSystem only supports square matrices',
+		matrixVectorMismatch: 'Length of vector b must match dimension of matrix A',
+		matrixSingular: 'Linear system is singular or nearly singular, cannot solve'
+	}
+};
+
 const fallback = zhCN;
 
 export const locales: Record<LocaleKey, LocaleText> = {
 	'zh-cn': zhCN,
-	en: fallback,
+	en: en,
 	'zh-tw': fallback
 };
 

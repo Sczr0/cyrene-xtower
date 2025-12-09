@@ -2,6 +2,7 @@
 	import { tick } from 'svelte';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { defaultLocale, getLocaleText, type LocaleKey } from '$lib/i18n/locales';
+	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 	import type {
 		GameKey,
 		PoolKey,
@@ -427,15 +428,25 @@
 
 	<main class="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8">
 		<section class="flex flex-col gap-2">
-			<p class="text-xs font-medium tracking-wide text-blue-600">
-				{heroText.gameLine}
-			</p>
-			<h1 class="text-2xl font-semibold text-slate-900 sm:text-3xl">
-				{heroText.title}
-			</h1>
-			<p class="max-w-2xl text-xs text-slate-500 sm:text-sm">
-				{heroText.description}
-			</p>
+			<div class="flex items-start justify-between">
+				<div class="flex flex-col gap-2">
+					<p class="text-xs font-medium tracking-wide text-blue-600">
+						{heroText.gameLine}
+					</p>
+					<h1 class="text-2xl font-semibold text-slate-900 sm:text-3xl">
+						{heroText.title}
+					</h1>
+					<p class="max-w-2xl text-xs text-slate-500 sm:text-sm">
+						{heroText.description}
+					</p>
+				</div>
+				<div class="hidden sm:block">
+					<LanguageSwitcher />
+				</div>
+			</div>
+			<div class="sm:hidden">
+				<LanguageSwitcher />
+			</div>
 		</section>
 
 		<section class="flex flex-col gap-6 lg:flex-row">
