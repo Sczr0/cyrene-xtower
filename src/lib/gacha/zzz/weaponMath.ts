@@ -33,7 +33,7 @@ function getProb5Star(pityIndex: number): number {
 	const pull = pityIndex + 1;
 	if (pull >= 80) return 1;
 	if (pull < 65) return 0.01;
-	return 0.01 + (pull - 64) * 0.061875;
+	return 0.01 + (pull - 64) * 0.06;
 }
 
 // Small guarantee: 75% chance to hit UP, 25% off-banner; big guarantee always UP.
