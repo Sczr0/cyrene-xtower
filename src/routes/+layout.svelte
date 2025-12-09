@@ -1,15 +1,21 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { getLocaleText, defaultLocale, type LocaleKey } from '$lib/i18n/locales';
+	import { getLocale } from '$lib/paraglide/runtime';
 
 	let { children } = $props();
 
 	const siteUrl = 'https://cyrene.xtower.site';
-	const siteTitle = '米游抽卡期望与分布计算器';
-	const siteDescription = '提供原神、崩坏：星穹铁道与绝区零的抽卡期望值与分布计算。支持自定义保底、命定值与蒙特卡洛模拟。';
-	const siteKeywords = '抽卡,原神,星穹铁道,绝区零,抽卡模拟,保底,命定值,概率计算,期望,蒙特卡洛,zzz,genshin';
-    
-    const ogImageUrl = `${siteUrl}/og-image.png`; 
+	const currentLocale = (getLocale?.() as LocaleKey) ?? defaultLocale;
+	const localeText = getLocaleText(currentLocale);
+
+	const siteTitle = localeText.site.title;
+	const siteDescription = localeText.site.description;
+	const siteKeywords = localeText.site.keywords;
+	const ogLocale = localeText.site.ogLocale;
+	const siteLanguage = ogLocale.replace('_', '-');
+	const ogImageUrl = `${siteUrl}/og-image.png`;
 
 	const jsonLd = {
 		'@context': 'https://schema.org',
@@ -17,24 +23,24 @@
 		name: siteTitle,
 		description: siteDescription,
 		url: siteUrl,
-		inLanguage: 'zh-CN',
+		inLanguage: siteLanguage,
 		applicationCategory: 'UtilitiesApplication',
 		operatingSystem: 'Any',
-        offers: {
-            '@type': 'Offer',
-            price: '0',
-            priceCurrency: 'CNY'
-        }
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: localeText.site.currency
+		}
 	};
 
-	// 处理内容转义
+	// Escape content before injecting JSON-LD
 	const jsonLdScriptContent = JSON.stringify(jsonLd)
-        .replace(/\u003C/g, '\\u003c')
-        .replace(/>/g, '\\u003e')
-        .replace(/&/g, '\\u0026');
+		.replace(/\u003C/g, '\\u003c')
+		.replace(/>/g, '\\u003e')
+		.replace(/&/g, '\\u0026');
 
-    // 使用 '<' + '/script>' 拼接，防止 Svelte 编译器误判为脚本结束
-    const finalJsonLdTag = `<script type="application/ld+json">${jsonLdScriptContent}<` + `/script>`;
+	// Use split string to avoid Svelte mis-detecting the closing script tag
+	const finalJsonLdTag = `<script type="application/ld+json">${jsonLdScriptContent}<` + `/script>`;
 </script>
 
 <svelte:head>
@@ -44,15 +50,15 @@
 	<meta name="description" content={siteDescription} />
 	<meta name="keywords" content={siteKeywords} />
 	<meta name="robots" content="index,follow" />
-    <meta name="author" content="Cyrene" />
+    <meta name="author" content={localeText.site.author} />
 
 	<!-- Open Graph / Facebook / WeChat -->
 	<meta property="og:title" content={siteTitle} />
 	<meta property="og:description" content={siteDescription} />
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content={siteUrl} />
-	<meta property="og:locale" content="zh_CN" />
-    <!-- 分享封面图 -->
+	<meta property="og:locale" content={ogLocale} />
+    <!-- Social share image -->
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -63,8 +69,8 @@
 	<meta name="twitter:description" content={siteDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
 
-	<!-- JSON-LD 注入 -->
-    <!-- 直接渲染 script 里拼好的字符串 -->
+	<!-- JSON-LD injection -->
+    <!-- Render the prepared script content directly -->
 	{@html finalJsonLdTag}
 </svelte:head>
 

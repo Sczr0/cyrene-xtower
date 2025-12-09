@@ -1,15 +1,10 @@
-import { json, type RequestHandler } from '@sveltejs/kit';
+﻿import { json, type RequestHandler } from '@sveltejs/kit';
 import { runExpectation, runDistribution } from '$lib/gacha/engine';
-import type {
-	GameKey,
-	PoolKey,
-	Mode,
-	InitialState,
-	GachaArgs,
-	PullStats
-} from '$lib/gacha/core/types';
+import type { GameKey, PoolKey, Mode, InitialState, GachaArgs, PullStats } from '$lib/gacha/core/types';
+import { getLocaleText } from '$lib/i18n/locales';
 
-// 合法游戏与卡池组合
+const localeText = getLocaleText();
+
 const VALID_POOLS: Record<GameKey, PoolKey[]> = {
 	genshin: ['character', 'weapon'],
 	hsr: ['character', 'lightcone'],
@@ -24,25 +19,25 @@ interface GachaResponsePayload {
 	returns?: PullStats;
 }
 
-// 基本校验与归一化，将请求体转换为标准 GachaArgs
+// Validate and normalize request body into standard GachaArgs
 function normalizeAndValidateBody(body: unknown): GachaArgs {
 	if (!body || typeof body !== 'object') {
-		throw new Error('请求体为空或格式错误');
+		throw new Error(localeText.apiErrors.emptyBody);
 	}
 
 	const b = body as Partial<GachaArgs>;
 
 	if (!b.game || !(['genshin', 'hsr', 'zzz'] as GameKey[]).includes(b.game)) {
-		throw new Error('游戏类型不合法');
+		throw new Error(localeText.apiErrors.invalidGame);
 	}
 
 	if (!b.pool || !VALID_POOLS[b.game]?.includes(b.pool)) {
-		throw new Error('卡池类型不合法或与游戏不匹配');
+		throw new Error(localeText.apiErrors.invalidPool);
 	}
 
 	const targetCount = Number(b.targetCount ?? 1);
 	if (!Number.isFinite(targetCount) || targetCount <= 0) {
-		throw new Error('目标数量必须为正整数');
+		throw new Error(localeText.apiErrors.invalidTarget);
 	}
 
 	const budgetRaw = (b as { budget?: unknown }).budget;
@@ -51,7 +46,7 @@ function normalizeAndValidateBody(body: unknown): GachaArgs {
 			? null
 			: Number(budgetRaw);
 	if (budget !== null && (!Number.isFinite(budget) || budget <= 0)) {
-		throw new Error('预算必须为正整数或留空');
+		throw new Error(localeText.apiErrors.invalidBudget);
 	}
 
 	const initialStateRaw = (b.initialState ?? {
@@ -77,12 +72,10 @@ function normalizeAndValidateBody(body: unknown): GachaArgs {
 			Number.isFinite(mingguangCounter) && mingguangCounter >= 0
 				? mingguangCounter
 				: 0,
-		fatePoint:
-			Number.isFinite(fatePoint) && fatePoint >= 0 ? fatePoint : 0
+		fatePoint: Number.isFinite(fatePoint) && fatePoint >= 0 ? fatePoint : 0
 	};
 
-	const mode: Mode =
-		b.mode === 'distribution' ? 'distribution' : 'expectation';
+	const mode: Mode = b.mode === 'distribution' ? 'distribution' : 'expectation';
 
 	return {
 		game: b.game,
@@ -103,7 +96,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		let payload: GachaResponsePayload;
 
 		if (args.mode === 'expectation') {
-			// 期望模式：完全使用 TS 抽卡引擎
 			const info = runExpectation(args);
 			payload = {
 				mode: args.mode,
@@ -113,7 +105,6 @@ export const POST: RequestHandler = async ({ request }) => {
 				}
 			};
 		} else {
-			// 分布模式：使用 TS 模拟引擎（Monte Carlo）
 			const info = runDistribution(args);
 			payload = {
 				mode: args.mode,
@@ -127,9 +118,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ ok: true, data: payload });
 	} catch (error) {
 		const message =
-			error instanceof Error ? error.message : '未知错误，请稍后重试';
-		console.error('[gacha] 计算失败', error);
+			error instanceof Error ? error.message : localeText.apiErrors.unknown;
+		console.error('[gacha] calculation failed', error);
 		return json({ ok: false, error: message }, { status: 400 });
 	}
 };
-
