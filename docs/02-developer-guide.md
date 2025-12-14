@@ -197,15 +197,15 @@ export type LocaleText = {
   "plugin.inlang.messageFormat": {
     "pathPattern": "./messages/{locale}.json"
   },
-  "baseLocale": "en",
-  "locales": ["en", "zh-cn", "zh-tw"]
+  "baseLocale": "zh-cn",
+  "locales": ["zh-cn", "en", "zh-tw"]
 }
 ```
 
 要添加新语言，请更新 `locales` 数组：
 
 ```json
-"locales": ["en", "zh-cn", "zh-tw", "ja"]
+"locales": ["zh-cn", "en", "zh-tw", "ja"]
 ```
 
 ### 修改中间件配置

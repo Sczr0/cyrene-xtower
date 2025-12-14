@@ -288,8 +288,8 @@ export function getLocaleText(locale) {
 ```typescript
 // 测试脚本示例
 function checkTranslations() {
-  const baseLocale = 'en';
-  const locales = ['zh-cn', 'zh-tw'];
+  const baseLocale = 'zh-cn';
+  const locales = ['en', 'zh-tw'];
   
   // 检查所有语言是否包含所有键
   for (const locale of locales) {
