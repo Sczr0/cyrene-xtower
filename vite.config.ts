@@ -10,7 +10,9 @@ export default defineConfig({
 		sveltekit(),
 		paraglideVitePlugin({
 			project: './project.inlang',
-			outdir: './src/lib/paraglide'
+			outdir: './src/lib/paraglide',
+			// SEO 友好：以 URL 前缀作为语言来源（/en、/zh-tw），便于静态预渲染输出多语言页面
+			strategy: ['url', 'cookie', 'globalVariable', 'baseLocale']
 		})
 	],
 	test: {
